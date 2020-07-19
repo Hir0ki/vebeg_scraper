@@ -10,9 +10,10 @@ class Category:
     is_top_level: bool
     parent_id: int
 
-    def __init__(self, id: int, name: str, parent_id: int, is_top_level=False):
+    def __init__(self, id: int, name: str, parent_id: int=0, is_top_level=False):
         if not is_top_level:
-            self.parent_id = parent_id
+            parent_id = 0
+        self.parent_id = parent_id
         self.id = id
         self.name = name
 
@@ -26,6 +27,7 @@ class Listing:
     bemerkungen: str
     gebotsbasis: str
     hinweise_bedingungen: str
+    lagerort: str
     category: Category
     gebotstermin: datetime
 
