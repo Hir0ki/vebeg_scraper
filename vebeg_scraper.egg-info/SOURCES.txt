@@ -1,0 +1,9 @@
+README.rst
+setup.py
+vebeg_scraper/__init__.py
+vebeg_scraper/main.py
+vebeg_scraper.egg-info/PKG-INFO
+vebeg_scraper.egg-info/SOURCES.txt
+vebeg_scraper.egg-info/dependency_links.txt
+vebeg_scraper.egg-info/requires.txt
+vebeg_scraper.egg-info/top_level.txt

@@ -1,0 +1,13 @@
+{
+    "fahrzeuge": {
+        "matgruppe": 1000,
+        "subcategories": {
+            "jahreswagen": 1757,
+            "kleinwagen": 1010,
+            "elektrofahrzeuge": 1755,
+            "kleinbusse": 1020,
+            "kleintransporter": 1799,
+
+        }
+    }
+}
