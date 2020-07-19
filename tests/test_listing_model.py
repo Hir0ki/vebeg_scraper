@@ -26,7 +26,7 @@ def test_category_init_is_top_level():
     #then
     assert test.parent_id == 10
 
-def test_category_init_is_top_level():
+def test_category_init_is_not_top_level():
     #given
     given_parent_id = 10
     given_is_top_level = False
