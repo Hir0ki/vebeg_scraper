@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Dict, Optional
+from typing import Dict, Optional, List
 
 
 @dataclass
@@ -31,6 +31,7 @@ class Listing:
     gebotsbasis: str
     hinweise_bedingungen: str
     lagerort: str
+    pictures_url: List[str]
     category: Category
     gebotstermin: datetime
 
@@ -39,3 +40,9 @@ class Listing:
         only_date = termin[14:]
         gebotstermin = datetime.strptime(only_date, "%d.%m.%Y, %H:%M h")
         return gebotstermin
+
+
+@dataclass
+class AuctionResult:
+    id: int
+    value: int

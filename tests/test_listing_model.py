@@ -37,4 +37,4 @@ def test_category_init_is_not_top_level():
     # when
     test = Category(1, "a", given_parent_id, is_top_level=given_is_top_level)
     # then
-    assert test.parent_id == 0
+    assert test.parent_id == None
