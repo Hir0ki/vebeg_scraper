@@ -3,6 +3,7 @@ from typing import List, Optional
 from vebeg_scraper.models import Listing, Category
 from bs4 import element, BeautifulSoup
 import logging
+import pathlib
 
 class CategoryParser:
     def __init__(self, request_proxy: RequestProxy):
@@ -52,20 +53,30 @@ class ListingsParser:
     def __get_listings_for_category(self, category: Category) -> List[Listing]:
         url_with_matgruppe = self.base_url + self.matgruppe_template + str(category.id)
         page_count = 0
-        listings: List[str] = []
-        old_length = -1 
+        listing_urls: List[str] = []
+        run = True
         self.logger.info("Start scraping Listings") 
-        while len(listings) > old_length:
+        while run:
             rqeuest_url = url_with_matgruppe + self.such_opsition + str(page_count)
             listings_bs = self.request_proxy.get_bs_from_url(rqeuest_url)
-            listings = self.__parse_listing_for_urls(listings_bs)
+            listing_urls = self.__parse_listing_for_urls(listings_bs)
+            if len(listing_urls) == 0:
+                run = False
             page_count = page_count + 20
-        for listing_url in listings:
-            self.__parse_lisitng(listing_url, category)
 
-    def __parse_lisitng(self, listing_url: str, category: Category) -> Listing:
+        listings:List[Listing] = []
+        for listing_url in listing_urls:
+            listings.append(self._parse_lisitng(listing_url, category))
+        return listings
+
+    def _parse_lisitng(self, listing_url: str, category: Category) -> Listing:
         listing_bs = self.request_proxy.get_bs_from_url(listing_url)
-        print(listing_bs.select("div.iconlink.losdetail_ausnr"))
+        self.logger.info(f"parsing listing url:{listing_url} category:{category.id}")
+        content  = listing_bs.find(id="content") 
+        id = int(content.select("div.iconlink.losdetail_ausnr")[0].find("b").text.replace(".",""))
+        gebotstermin = content.select("div.iconlink.losdetail_gebotstermin")
+        title = content.find("h1").text.replace("\n", "").replace("\t", "")
+        return Listing(id=id,title=title,daten={},kurzbeschreibung="",bemerkungen="",gebotsbasis="",lagerort="",pictures_url=[],category=category, gebotstermin="")
 
     def __parse_listing_for_urls(self, listings_bs: BeautifulSoup ) -> List[str]:
         content = listings_bs.find(id="content")
@@ -75,6 +86,10 @@ class ListingsParser:
             results.append(a_tag.get('href'))
         return results
         
-    def get_listings(self):
+    def get_listings(self) -> List[str]:
+        listings = []
         for category in self.categories:
-            self.__get_listings_for_category(category)
+            if category.is_top_level == False:
+                listings.append(self.__get_listings_for_category(category))
+
+        return listings

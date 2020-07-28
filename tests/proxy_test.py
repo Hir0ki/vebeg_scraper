@@ -1,5 +1,6 @@
-import pathlib
+from http.client import HTTPException
 from bs4 import BeautifulSoup
+import pathlib
 
 class TestProxy:
 
@@ -10,7 +11,12 @@ class TestProxy:
         self.listings_page_bs = BeautifulSoup(test_path.joinpath("listings.html").read_text(), "html.parser")
         self.listing_page_bs = BeautifulSoup(test_path.joinpath("listing.html").read_text(), "html.parser")
 
-    def get_bs_from_url(self, url):
+    def get_bs_from_url(self, url: str):
         if  url =="/web/de/start/index.htm":
             return self.main_page_bs
+        elif "/web/de/verkauf/suchen.htm?DO_SUCHE=1&SUCH_MATGRUPPE=1000&SUCH_STARTREC".find(url) > 0:
+            return self.listings_page_bs
+        elif "test_listing":
+            return self.listing_page_bs
 
+        raise HTTPException 

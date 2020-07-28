@@ -29,7 +29,6 @@ class Listing:
     kurzbeschreibung: str
     bemerkungen: str
     gebotsbasis: str
-    hinweise_bedingungen: str
     lagerort: str
     pictures_url: List[str]
     category: Category

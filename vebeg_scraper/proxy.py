@@ -14,8 +14,9 @@ class RequestProxy:
 
     def get_bs_from_url(self, url: str) -> BeautifulSoup:
         response_object = self.__send_request(url)
+        content = self.__get_response_content_as_str(response_object)
         return BeautifulSoup(
-            self.__get_response_content_as_str(response_object), "html.parser"
+            content, "html.parser"
         )
 
     def __send_request(self, url: str) -> HTTPResponse:
