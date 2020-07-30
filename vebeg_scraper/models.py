@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Dict, Optional, List
+from pathlib import Path
 
 
 @dataclass
@@ -27,10 +28,10 @@ class Listing:
     title: str
     daten: Dict
     kurzbeschreibung: str
-    bemerkungen: str
     gebotsbasis: str
     lagerort: str
-    pictures_url: List[str]
+    pictures_paths: List[Path]
+    attachments: List[Path]
     category: Category
     gebotstermin: datetime
 

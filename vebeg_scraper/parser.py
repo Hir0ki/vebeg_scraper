@@ -2,6 +2,7 @@ from vebeg_scraper.proxy import RequestProxy
 from typing import List, Optional
 from vebeg_scraper.models import Listing, Category
 from bs4 import element, BeautifulSoup
+from datetime import datetime
 import logging
 import pathlib
 
@@ -74,9 +75,12 @@ class ListingsParser:
         self.logger.info(f"parsing listing url:{listing_url} category:{category.id}")
         content  = listing_bs.find(id="content") 
         id = int(content.select("div.iconlink.losdetail_ausnr")[0].find("b").text.replace(".",""))
-        gebotstermin = content.select("div.iconlink.losdetail_gebotstermin")
-        title = content.find("h1").text.replace("\n", "").replace("\t", "")
-        return Listing(id=id,title=title,daten={},kurzbeschreibung="",bemerkungen="",gebotsbasis="",lagerort="",pictures_url=[],category=category, gebotstermin="")
+        gebotstermin_str = self.__clean_string(content.select("div.iconlink.losdetail_gebotstermin")[0].find("b").text)
+        gebotstermin = datetime.strptime(gebotstermin_str, "%d.%m.%Y,%H:%M h")
+        title = self.__clean_string(content.find("h1").text)
+        kurzbeschreibung= content.find("p").text
+        #gebotsbasis=content.select("h5")[2]
+        return Listing(id=id,title=title,daten={},kurzbeschreibung=kurzbeschreibung,gebotsbasis="",lagerort="",pictures_paths=[],attachments=[],category=category, gebotstermin=gebotstermin)
 
     def __parse_listing_for_urls(self, listings_bs: BeautifulSoup ) -> List[str]:
         content = listings_bs.find(id="content")
@@ -85,7 +89,10 @@ class ListingsParser:
         for a_tag in tags:
             results.append(a_tag.get('href'))
         return results
-        
+
+    def __clean_string(self, string: str ) -> str:
+        return string.replace("\n", "").replace("\t", "")
+
     def get_listings(self) -> List[str]:
         listings = []
         for category in self.categories:
