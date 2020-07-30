@@ -3,6 +3,7 @@ from typing import List, Optional
 from vebeg_scraper.models import Listing, Category, GEBOTSBASIS_NAMES, Dict
 from bs4 import element, BeautifulSoup  # type: ignore
 from datetime import datetime
+from vebeg_scraper import settings
 import re
 import logging
 import pathlib
@@ -41,7 +42,10 @@ class CategoryParser:
             id = 0
             self.logger.error(f"Parse category tag error {tag}", exc_info=error)
         return Category(
-            id=id, name=tag.contents[0], is_top_level=is_top_level, parent_id=parent_id
+            id=id,
+            name=clean_string(str(tag.contents[0])),
+            is_top_level=is_top_level,
+            parent_id=parent_id,
         )
 
 
@@ -52,6 +56,7 @@ class ListingsParser:
         self.matgruppe_template = "&SUCH_MATGRUPPE="
         self.such_opsition = "&SUCH_STARTREC="
         self.categories = categories
+        self.download_dir = pathlib.Path(settings.PICTURE_CACHE_PATH)
         self.logger = logging.getLogger("scraper.listings")
         self.gebotsbasis_regex = re.compile(
             r"Gebotsbasis({}|{})".format(GEBOTSBASIS_NAMES[0], GEBOTSBASIS_NAMES[1])
@@ -62,7 +67,7 @@ class ListingsParser:
         page_count = 0
         listing_urls: List[str] = []
         run = True
-        self.logger.info("Start scraping Listings")
+        self.logger.info(f"Start scraping Listings cat:{category.id}")
         while run:
             rqeuest_url = url_with_matgruppe + self.such_opsition + str(page_count)
             listings_bs = self.request_proxy.get_bs_from_url(rqeuest_url)
@@ -85,11 +90,11 @@ class ListingsParser:
             .find("b")
             .text.replace(".", "")
         )
-        gebotstermin_str = self.__clean_string(
+        gebotstermin_str = clean_string(
             content.select("div.iconlink.losdetail_gebotstermin")[0].find("b").text
         )
-        gebotstermin = datetime.strptime(gebotstermin_str, "%d.%m.%Y,%H:%M h")
-        title = self.__clean_string(content.find("h1").text)
+        gebotstermin = datetime.strptime(gebotstermin_str, "%d.%m.%Y, %H:%M h")
+        title = clean_string(content.find("h1").text)
         kurzbeschreibung = content.find("p").text
 
         regex_gebotsbasis = self.gebotsbasis_regex.search(
@@ -98,13 +103,25 @@ class ListingsParser:
         if regex_gebotsbasis is not None:
             gebotsbasis = regex_gebotsbasis.group(1)
         else:
-            self.logger.warning(
-                f"Didn't find gebotsbasis in listing url: {listing_url}"
-            )
+            self.logger.warning(f"Didn't find gebotsbasis in listing: {id}")
         lagerort = content.select("td.detailtable.detailtable_lagerort")[
             0
         ].text.replace("Lagerort / Standort", "")
         daten = self.__parse_data_listing(content)
+
+        pictures_html_container = content.select("td.detailtable.b_l")
+        picture_paths = []
+        if len(pictures_html_container) == 1:
+            picture_paths = self.__download_pictures(
+                [
+                    a_tag.get("href")
+                    for a_tag in pictures_html_container[0].find_all("a")
+                ],
+                id,
+            )
+        else:
+            logging.info(f"No pictures for listing: {id}")
+
         return Listing(
             id=id,
             title=title,
@@ -112,7 +129,7 @@ class ListingsParser:
             kurzbeschreibung=kurzbeschreibung,
             gebotsbasis=gebotsbasis,
             lagerort=lagerort,
-            pictures_paths=[],
+            pictures_paths=picture_paths,
             attachments=[],
             category=category,
             gebotstermin=gebotstermin,
@@ -135,8 +152,19 @@ class ListingsParser:
             results.append(a_tag.get("href"))
         return results
 
-    def __clean_string(self, string: str) -> str:
-        return string.replace("\n", "").replace("\t", "")
+    def __download_pictures(self, urls: List[str], id: int) -> List[pathlib.Path]:
+
+        picture_paths: List[pathlib.Path] = []
+        for count, url in enumerate(urls):
+            send_url = settings.VEBEG_URL + url
+            picture_data = self.request_proxy.get_picture_from_url(send_url)
+            picture_path = self.download_dir.joinpath(f"{id}_{count}.jpg")
+            if not picture_path.is_file():
+                picture_path.write_bytes(picture_data)
+                picture_paths.append(picture_path)
+            else:
+                self.logger.error(f"picture was already downlaoded name: {id}_{count}")
+        return picture_paths
 
     def get_listings(self) -> List[Listing]:
         listings: List[Listing] = []
@@ -145,3 +173,7 @@ class ListingsParser:
                 listings = listings + self.__get_listings_for_category(category)
 
         return listings
+
+
+def clean_string(string: str) -> str:
+    return " ".join(string.split())

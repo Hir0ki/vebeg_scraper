@@ -6,9 +6,10 @@ import pathlib
 
 
 # Add new config parameter her
-
+VEBEG_URL = os.getenv("VEGEB_URL", "https://www.vebeg.de")
+PICTURE_CACHE_PATH = os.getenv("PICTURE_CACHE_PATH", "/tmp/picture_cache")
 # Path to the logging config file in a yml format
-LOG_CONFIG_PATH = os.getenv("LOG_CONFIG_PATH", "/logging.yml")
+LOG_CONFIG_PATH = os.getenv("LOG_CONFIG_PATH", "./logging.yml")
 # Log Level for the root logger
 LOG_LEVEL_ROOT = os.getenv("LOG_LEVEL_ROOT", "INFO")
 # Log level for the Project root logger

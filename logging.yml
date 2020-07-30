@@ -1,5 +1,5 @@
 ---
-version: 3
+version: 1
 disable_existing_loggers: False
 formatters:
   default:
@@ -17,7 +17,7 @@ root:
   handlers: [console]
 
 loggers:
-  {{cookiecutter.project_slug}}:
+  scraper:
     level: INFO
     handlers: [console]
     propagate: no

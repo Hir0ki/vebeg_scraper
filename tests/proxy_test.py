@@ -29,3 +29,6 @@ class TestProxy:
             return self.listing_page_bs
 
         raise HTTPException
+
+    def get_picture_from_url(self, url):
+        return pathlib.Path(__file__).parent.joinpath("test_picture.jpg").read_bytes()

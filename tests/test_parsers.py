@@ -1,8 +1,9 @@
-from vebeg_scraper.parser import CategoryParser, ListingsParser
+from vebeg_scraper.parser import CategoryParser, ListingsParser, clean_string
 from vebeg_scraper.models import Category
 from tests.proxy_test import TestProxy
 from datetime import datetime
 import pytest  # type: ignore
+import pathlib
 
 
 @pytest.fixture
@@ -16,8 +17,16 @@ def test_categories(test_proxy):
     # when
     categories = category_parser.get_categories()
     # then
-    assert categories[0].id == 1000
-    assert categories[0].is_top_level is True
+    assert categories[1].id == 1757
+    assert categories[1].name == "Jahreswagen / Kfz. bis 24 Monate"
+    assert categories[1].is_top_level is False
+
+
+def test_clean_string():
+    assert (
+        clean_string("Jahreswagen\n\t\t\t\t\t\t\t\t\t\t\t\t/ Kfz. bis 24 Monate")
+        == "Jahreswagen / Kfz. bis 24 Monate"
+    )
 
 
 # def test_get_all_listings(test_proxy):
@@ -39,7 +48,7 @@ def test_prase_listing_title(test_proxy):
     categories = [Category(id=1100, name="", is_top_level=False)]
     parser = ListingsParser(test_proxy, categories)
     listing = parser._parse_lisitng("test_listing", categories[0])
-    assert listing.title == "Pkw BMW 740eiPerformance"
+    assert listing.title == "Pkw BMW 740e iPerformance"
 
 
 def test_parse_listing_gebotstermin(test_proxy):
@@ -80,3 +89,13 @@ def test_parse_daten(test_proxy):
     parser = ListingsParser(test_proxy, categories)
     listing = parser._parse_lisitng("test_listing", categories[0])
     assert listing.daten.get("Erstzulassung") == "09/18"
+
+
+def test_download_image(test_proxy, tmpdir):
+
+    categories = [Category(id=1100, name="", is_top_level=False)]
+    parser = ListingsParser(test_proxy, categories)
+    parser.download_dir = pathlib.Path(tmpdir.dirname)
+    parser._parse_lisitng("test_listing", categories[0])
+    new_line = parser.download_dir.joinpath("2030520001_0.jpg")
+    assert new_line.is_file() is True
