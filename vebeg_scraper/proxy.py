@@ -15,18 +15,18 @@ class RequestProxy:
     def get_bs_from_url(self, url: str) -> BeautifulSoup:
         response_object = self.__send_request(url)
         content = self.__get_response_content_as_str(response_object)
-        return BeautifulSoup(
-            content, "html.parser"
-        )
+        return BeautifulSoup(content, "html.parser")
 
     def __send_request(self, url: str) -> HTTPResponse:
         request_obj = request.Request(self.base_url + url, headers=self.headers)
         self.logger.info(f"Sending request to {url}")
-        response = request.urlopen(request_obj)
+        response: HTTPResponse = request.urlopen(request_obj)
         if response.status == 200:
             return response
         else:
-            self.logger.error(f"Send request to {url} and got response code {response.status}")
+            self.logger.error(
+                f"Send request to {url} and got response code {response.status}"
+            )
             raise HTTPException
 
     def __get_response_content_as_str(self, response: HTTPResponse) -> str:

@@ -1,10 +1,11 @@
 from vebeg_scraper.proxy import RequestProxy
 from typing import List, Optional
 from vebeg_scraper.models import Listing, Category
-from bs4 import element, BeautifulSoup
+from bs4 import element, BeautifulSoup  # type: ignore
 from datetime import datetime
 import logging
 import pathlib
+
 
 class CategoryParser:
     def __init__(self, request_proxy: RequestProxy):
@@ -42,6 +43,7 @@ class CategoryParser:
             id=id, name=tag.contents[0], is_top_level=is_top_level, parent_id=parent_id
         )
 
+
 class ListingsParser:
     def __init__(self, request_proxy: RequestProxy, categories: List[Category]):
         self.request_proxy = request_proxy
@@ -56,7 +58,7 @@ class ListingsParser:
         page_count = 0
         listing_urls: List[str] = []
         run = True
-        self.logger.info("Start scraping Listings") 
+        self.logger.info("Start scraping Listings")
         while run:
             rqeuest_url = url_with_matgruppe + self.such_opsition + str(page_count)
             listings_bs = self.request_proxy.get_bs_from_url(rqeuest_url)
@@ -65,7 +67,7 @@ class ListingsParser:
                 run = False
             page_count = page_count + 20
 
-        listings:List[Listing] = []
+        listings: List[Listing] = []
         for listing_url in listing_urls:
             listings.append(self._parse_lisitng(listing_url, category))
         return listings
@@ -73,30 +75,47 @@ class ListingsParser:
     def _parse_lisitng(self, listing_url: str, category: Category) -> Listing:
         listing_bs = self.request_proxy.get_bs_from_url(listing_url)
         self.logger.info(f"parsing listing url:{listing_url} category:{category.id}")
-        content  = listing_bs.find(id="content") 
-        id = int(content.select("div.iconlink.losdetail_ausnr")[0].find("b").text.replace(".",""))
-        gebotstermin_str = self.__clean_string(content.select("div.iconlink.losdetail_gebotstermin")[0].find("b").text)
+        content = listing_bs.find(id="content")
+        id = int(
+            content.select("div.iconlink.losdetail_ausnr")[0]
+            .find("b")
+            .text.replace(".", "")
+        )
+        gebotstermin_str = self.__clean_string(
+            content.select("div.iconlink.losdetail_gebotstermin")[0].find("b").text
+        )
         gebotstermin = datetime.strptime(gebotstermin_str, "%d.%m.%Y,%H:%M h")
         title = self.__clean_string(content.find("h1").text)
-        kurzbeschreibung= content.find("p").text
-        #gebotsbasis=content.select("h5")[2]
-        return Listing(id=id,title=title,daten={},kurzbeschreibung=kurzbeschreibung,gebotsbasis="",lagerort="",pictures_paths=[],attachments=[],category=category, gebotstermin=gebotstermin)
+        kurzbeschreibung = content.find("p").text
+        # gebotsbasis=content.select("h5")[2]
+        return Listing(
+            id=id,
+            title=title,
+            daten={},
+            kurzbeschreibung=kurzbeschreibung,
+            gebotsbasis="",
+            lagerort="",
+            pictures_paths=[],
+            attachments=[],
+            category=category,
+            gebotstermin=gebotstermin,
+        )
 
-    def __parse_listing_for_urls(self, listings_bs: BeautifulSoup ) -> List[str]:
+    def __parse_listing_for_urls(self, listings_bs: BeautifulSoup) -> List[str]:
         content = listings_bs.find(id="content")
         tags = content.select("a.los-detaillink.tracklink")
         results = []
         for a_tag in tags:
-            results.append(a_tag.get('href'))
+            results.append(a_tag.get("href"))
         return results
 
-    def __clean_string(self, string: str ) -> str:
+    def __clean_string(self, string: str) -> str:
         return string.replace("\n", "").replace("\t", "")
 
-    def get_listings(self) -> List[str]:
-        listings = []
+    def get_listings(self) -> List[Listing]:
+        listings: List[Listing] = []
         for category in self.categories:
-            if category.is_top_level == False:
-                listings.append(self.__get_listings_for_category(category))
+            if category.is_top_level is False:
+                listings = listings + self.__get_listings_for_category(category)
 
         return listings
