@@ -4,7 +4,7 @@ repos:
     hooks:
       - id: black
         name: unified code formating 
-        language_version: python{{cookiecutter.python_version}}
+        language_version: python3.8
 
 -   repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v2.3.0

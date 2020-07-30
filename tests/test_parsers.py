@@ -17,7 +17,7 @@ def test_categories(test_proxy):
     categories = category_parser.get_categories()
     # then
     assert categories[0].id == 1000
-    assert categories[0].is_top_level == True
+    assert categories[0].is_top_level is True
 
 
 # def test_get_all_listings(test_proxy):
@@ -59,8 +59,24 @@ def test_parse_listing_kurzbeschreibung(test_proxy):
     )
 
 
-# def test_prase_listing_gebotsbasis(test_proxy):
-#    categories = [Category(id=1100,name="",is_top_level=False)]
-#    parser = ListingsParser(test_proxy, categories)
-#    listing = parser._parse_lisitng("test_listing", categories[0])
-#    assert "stück" ==  listing.gebotsbasis
+def test_prase_listing_gebotsbasis(test_proxy):
+    categories = [Category(id=1100, name="", is_top_level=False)]
+    parser = ListingsParser(test_proxy, categories)
+    listing = parser._parse_lisitng("test_listing", categories[0])
+    assert "stück" == listing.gebotsbasis.lower()
+
+
+def test_parse_lagerort(test_proxy):
+    categories = [Category(id=1100, name="", is_top_level=False)]
+    parser = ListingsParser(test_proxy, categories)
+    listing = parser._parse_lisitng("test_listing", categories[0])
+    assert "Grellstraße" in listing.lagerort
+    assert "10409 Berlin" in listing.lagerort
+    assert "Lagerort / Standort" not in listing.lagerort
+
+
+def test_parse_daten(test_proxy):
+    categories = [Category(id=1100, name="", is_top_level=False)]
+    parser = ListingsParser(test_proxy, categories)
+    listing = parser._parse_lisitng("test_listing", categories[0])
+    assert listing.daten.get("Erstzulassung") == "09/18"

@@ -1,8 +1,9 @@
 from vebeg_scraper.proxy import RequestProxy
 from typing import List, Optional
-from vebeg_scraper.models import Listing, Category
+from vebeg_scraper.models import Listing, Category, GEBOTSBASIS_NAMES, Dict
 from bs4 import element, BeautifulSoup  # type: ignore
 from datetime import datetime
+import re
 import logging
 import pathlib
 
@@ -52,6 +53,9 @@ class ListingsParser:
         self.such_opsition = "&SUCH_STARTREC="
         self.categories = categories
         self.logger = logging.getLogger("scraper.listings")
+        self.gebotsbasis_regex = re.compile(
+            r"Gebotsbasis({}|{})".format(GEBOTSBASIS_NAMES[0], GEBOTSBASIS_NAMES[1])
+        )
 
     def __get_listings_for_category(self, category: Category) -> List[Listing]:
         url_with_matgruppe = self.base_url + self.matgruppe_template + str(category.id)
@@ -87,19 +91,41 @@ class ListingsParser:
         gebotstermin = datetime.strptime(gebotstermin_str, "%d.%m.%Y,%H:%M h")
         title = self.__clean_string(content.find("h1").text)
         kurzbeschreibung = content.find("p").text
-        # gebotsbasis=content.select("h5")[2]
+
+        regex_gebotsbasis = self.gebotsbasis_regex.search(
+            content.select("td.detailtable.b_rdotted")[0].text
+        )
+        if regex_gebotsbasis is not None:
+            gebotsbasis = regex_gebotsbasis.group(1)
+        else:
+            self.logger.warning(
+                f"Didn't find gebotsbasis in listing url: {listing_url}"
+            )
+        lagerort = content.select("td.detailtable.detailtable_lagerort")[
+            0
+        ].text.replace("Lagerort / Standort", "")
+        daten = self.__parse_data_listing(content)
         return Listing(
             id=id,
             title=title,
-            daten={},
+            daten=daten,
             kurzbeschreibung=kurzbeschreibung,
-            gebotsbasis="",
-            lagerort="",
+            gebotsbasis=gebotsbasis,
+            lagerort=lagerort,
             pictures_paths=[],
             attachments=[],
             category=category,
             gebotstermin=gebotstermin,
         )
+
+    def __parse_data_listing(self, content: BeautifulSoup) -> Dict[str, str]:
+        table_left = content.select("td.detaildata_right")
+        table_right = content.select("td.detaildata_left")
+        output_dict: Dict[str, str] = {}
+        for counter, key in enumerate(table_right):
+            entry = table_left[counter]
+            output_dict[key.text.strip(":")] = entry.text
+        return output_dict
 
     def __parse_listing_for_urls(self, listings_bs: BeautifulSoup) -> List[str]:
         content = listings_bs.find(id="content")
