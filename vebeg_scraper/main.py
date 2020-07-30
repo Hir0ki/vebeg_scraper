@@ -1,4 +1,5 @@
 import logging
+from vebeg_scraper import settings  
 from vebeg_scraper.parser import CategoryParser, ListingsParser
 from vebeg_scraper.proxy import RequestProxy
 

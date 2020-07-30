@@ -1,0 +1,23 @@
+---
+version: 3
+disable_existing_loggers: False
+formatters:
+  default:
+    format: "[%(asctime)s] [%(process)s] [%(name)s] [%(levelname)s] %(message)s"
+
+handlers:
+  console:
+    class: logging.StreamHandler
+    level: DEBUG
+    formatter: default
+    stream: ext://sys.stdout
+
+root:
+  level: INFO 
+  handlers: [console]
+
+loggers:
+  {{cookiecutter.project_slug}}:
+    level: INFO
+    handlers: [console]
+    propagate: no
