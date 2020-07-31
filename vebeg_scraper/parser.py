@@ -27,7 +27,9 @@ class CategoryParser:
                 [i.find_all("a") for i in tag.parent.find_all("li")], []
             )
             for child in children:
-                results.append(self.__parse_a_tag(child, False, top_level_cat.id))
+                new_cat = self.__parse_a_tag(child, False, top_level_cat.id)
+                if new_cat.id not in [cat.id for cat in results]:
+                    results.append(new_cat)
         return results
 
     def __parse_a_tag(
@@ -71,9 +73,10 @@ class ListingsParser:
         while run:
             rqeuest_url = url_with_matgruppe + self.such_opsition + str(page_count)
             listings_bs = self.request_proxy.get_bs_from_url(rqeuest_url)
-            listing_urls = self.__parse_listing_for_urls(listings_bs)
-            if len(listing_urls) == 0:
+            new_listing_urls = self.__parse_listing_for_urls(listings_bs)
+            if len(new_listing_urls) == 0:
                 run = False
+            listing_urls = listing_urls + new_listing_urls
             page_count = page_count + 20
 
         listings: List[Listing] = []
@@ -156,14 +159,16 @@ class ListingsParser:
 
         picture_paths: List[pathlib.Path] = []
         for count, url in enumerate(urls):
-            send_url = settings.VEBEG_URL + url
-            picture_data = self.request_proxy.get_picture_from_url(send_url)
-            picture_path = self.download_dir.joinpath(f"{id}_{count}.jpg")
-            if not picture_path.is_file():
-                picture_path.write_bytes(picture_data)
-                picture_paths.append(picture_path)
-            else:
-                self.logger.error(f"picture was already downlaoded name: {id}_{count}")
+            if "javascript" not in url.lower():
+                picture_data = self.request_proxy.get_picture_from_url(url)
+                picture_path = self.download_dir.joinpath(f"{id}_{count}.jpg")
+                if not picture_path.is_file():
+                    picture_path.write_bytes(picture_data)
+                    picture_paths.append(picture_path)
+                else:
+                    self.logger.error(
+                        f"picture was already downlaoded name: {id}_{count}"
+                    )
         return picture_paths
 
     def get_listings(self) -> List[Listing]:

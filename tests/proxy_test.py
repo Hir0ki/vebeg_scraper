@@ -19,10 +19,10 @@ class TestProxy:
         if url == "/web/de/start/index.htm":
             return self.main_page_bs
         elif (
-            "/web/de/verkauf/suchen.htm?DO_SUCHE=1&SUCH_MATGRUPPE=1000&SUCH_STARTREC".find(
-                url
-            )
-            > 0
+            "/web/de/verkauf/suchen.htm?DO_SUCHE=1&SUCH_MATGRUPPE=1000&SUCH_STARTREC=0"
+            in url
+            or "/web/de/verkauf/suchen.htm?DO_SUCHE=1&SUCH_MATGRUPPE=1757&SUCH_STARTREC=0"
+            in url
         ):
             return self.listings_page_bs
         elif "test_listing":

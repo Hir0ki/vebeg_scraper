@@ -11,17 +11,6 @@ def test_proxy():
     return TestProxy("")
 
 
-def test_categories(test_proxy):
-    # given
-    category_parser = CategoryParser(test_proxy)
-    # when
-    categories = category_parser.get_categories()
-    # then
-    assert categories[1].id == 1757
-    assert categories[1].name == "Jahreswagen / Kfz. bis 24 Monate"
-    assert categories[1].is_top_level is False
-
-
 def test_clean_string():
     assert (
         clean_string("Jahreswagen\n\t\t\t\t\t\t\t\t\t\t\t\t/ Kfz. bis 24 Monate")
@@ -29,11 +18,14 @@ def test_clean_string():
     )
 
 
-# def test_get_all_listings(test_proxy):
-#    categories = [Category(id=1000,name="",is_top_level=True)]
-#    listing_parse = ListingsParser(test_proxy, categories)
-#    listings = listing_parse.get_listings()
-#    assert listings != []
+def test_get_all_listings(test_proxy):
+    categories = [
+        Category(id=1000, name="", is_top_level=True),
+        Category(id=1757, name="", is_top_level=False),
+    ]
+    listing_parse = ListingsParser(test_proxy, categories)
+    listings = listing_parse.get_listings()
+    assert listings != []
 
 
 def test_parse_listing_id(test_proxy):
