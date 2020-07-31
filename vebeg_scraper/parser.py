@@ -96,7 +96,11 @@ class ListingsParser:
         gebotstermin_str = clean_string(
             content.select("div.iconlink.losdetail_gebotstermin")[0].find("b").text
         )
-        gebotstermin = datetime.strptime(gebotstermin_str, "%d.%m.%Y, %H:%M h")
+        if gebotstermin_str.lower() != "sofortverkauf":
+            gebotstermin = datetime.strptime(gebotstermin_str, "%d.%m.%Y, %H:%M h")
+        else:
+            gebotstermin = datetime.now()
+
         title = clean_string(content.find("h1").text)
         kurzbeschreibung = content.find("p").text
 
