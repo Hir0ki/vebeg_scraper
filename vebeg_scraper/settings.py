@@ -7,6 +7,9 @@ import pathlib
 
 # Add new config parameter her
 VEBEG_URL = os.getenv("VEGEB_URL", "https://www.vebeg.de")
+
+JSON_SERIALIZER_OUTPUT_PATH = os.getenv("JSON_SERIALIZER_OUTPUT_PATH", "/tmp/output")
+
 PICTURE_CACHE_PATH = os.getenv("PICTURE_CACHE_PATH", "/tmp/picture_cache")
 # Path to the logging config file in a yml format
 LOG_CONFIG_PATH = os.getenv("LOG_CONFIG_PATH", "./logging.yml")

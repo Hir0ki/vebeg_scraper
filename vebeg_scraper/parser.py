@@ -59,6 +59,8 @@ class ListingsParser:
         self.such_opsition = "&SUCH_STARTREC="
         self.categories = categories
         self.download_dir = pathlib.Path(settings.PICTURE_CACHE_PATH)
+        if not self.download_dir.is_dir():
+            self.download_dir.mkdir()
         self.logger = logging.getLogger("scraper.listings")
         self.gebotsbasis_regex = re.compile(
             r"Gebotsbasis({}|{})".format(GEBOTSBASIS_NAMES[0], GEBOTSBASIS_NAMES[1])
@@ -111,6 +113,7 @@ class ListingsParser:
             gebotsbasis = regex_gebotsbasis.group(1)
         else:
             self.logger.warning(f"Didn't find gebotsbasis in listing: {id}")
+            gebotsbasis = ""
         lagerort = content.select("td.detailtable.detailtable_lagerort")[
             0
         ].text.replace("Lagerort / Standort", "")
