@@ -1,12 +1,18 @@
 from urllib import request
 from http.client import HTTPException, HTTPResponse
 from bs4 import BeautifulSoup, element  # type: ignore
+from prometheus_client import Counter, Summary
 import logging
 
 
 class RequestProxy:
     def __init__(self, base_url: str):
         self.base_url = base_url
+        self.request_counter = Counter(
+            "total_reqeusts",
+            "the total amount of reqeust send with the since process start",
+        )
+        self.request_time = Summary("request_latency", "time of request send")
         self.headers = {
             "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101 Firefox/78.0"
         }
@@ -24,7 +30,9 @@ class RequestProxy:
     def __send_request(self, url: str) -> HTTPResponse:
         request_obj = request.Request(self.base_url + url, headers=self.headers)
         self.logger.debug(f"Sending request to {url}")
-        response: HTTPResponse = request.urlopen(request_obj)
+        with self.request_time.time():
+            response: HTTPResponse = request.urlopen(request_obj)
+        self.request_counter.inc()
         if response.status == 200:
             return response
         else:

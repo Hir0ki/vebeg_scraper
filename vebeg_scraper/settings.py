@@ -8,6 +8,8 @@ import pathlib
 # Add new config parameter her
 VEBEG_URL = os.getenv("VEGEB_URL", "https://www.vebeg.de")
 
+PROMEHTEUS_PORT = int(os.getenv("PROMETHEUS_PORT", 9111))
+
 JSON_SERIALIZER_OUTPUT_PATH = os.getenv("JSON_SERIALIZER_OUTPUT_PATH", "/tmp/output")
 
 PICTURE_CACHE_PATH = os.getenv("PICTURE_CACHE_PATH", "/tmp/picture_cache")
