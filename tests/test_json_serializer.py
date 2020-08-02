@@ -1,4 +1,4 @@
-from vebeg_scraper.models import Listing, Category
+from vebeg_scraper.models import Listing, Category, AuctionResult
 from vebeg_scraper.serializer.json_serializer import JsonSerializer
 from json import loads
 from datetime import datetime
@@ -71,8 +71,16 @@ def test_listings_serilizer(get_test_data, tmpdir):
     assert results[0].get("pictures_paths")[0] == "/tmp"
 
 
-# def test_listings_serilizer(get_test_data, tmpdir):
-#    output_path = tmpdir
-#    listings = get_test_data[1]
-#    serializer = JsonSerializer(output_path)
-#    pass
+def test_results_serilizer(get_test_data, tmpdir):
+    output_path = tmpdir
+    results = [
+        AuctionResult(id=1, gebotstermin=datetime(2020, 5, 1, 0, 0), value=100),
+        AuctionResult(id=2, gebotstermin=datetime(2020, 4, 1), value=40),
+    ]
+    serializer = JsonSerializer(output_path)
+    path = serializer.serializer_auction_results(results)
+
+    data = json.loads(path.read_text())
+    assert data[0].get("id") == 1
+    assert data[1].get("value") == 40
+    assert data[0].get("gebotstermin") is not None

@@ -1,4 +1,4 @@
-from vebeg_scraper.models import Category, Listing
+from vebeg_scraper.models import Category, Listing, AuctionResult
 from typing import List
 from datetime import datetime
 import json
@@ -28,3 +28,13 @@ class JsonSerializer:
         listings_output_path = self.output_path.joinpath("listings.json")
         listings_output_path.write_text(json_listings)
         return listings_output_path
+
+    def serializer_auction_results(self, resutls: List[AuctionResult]) -> pathlib.Path:
+        new_results = []
+        for entry in resutls:
+            entry.gebotstermin = str(entry.gebotstermin)  # type: ignore
+            new_results.append(entry)
+        json_resutls = json.dumps([result.__dict__ for result in new_results])
+        output_path = self.output_path.joinpath("resutls.json")
+        output_path.write_text(json_resutls)
+        return output_path

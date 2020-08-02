@@ -48,4 +48,5 @@ class Listing:
 @dataclass
 class AuctionResult:
     id: int
-    value: int
+    gebotstermin: datetime
+    value: float

@@ -3,6 +3,7 @@ from vebeg_scraper.parser import (
     ListingsParser,
     clean_string,
     ListingParser,
+    AuctionResultsParser,
 )
 from vebeg_scraper.models import Category
 from tests.proxy_test import TestProxy
@@ -96,3 +97,12 @@ def test_download_image(test_proxy, tmpdir):
     parser.get_listing("test_listing", categories[0])
     new_line = parser.download_dir.joinpath("2030520001_0.jpg")
     assert new_line.is_file() is True
+
+
+def test_auction_results(test_proxy):
+    # given
+    parser = AuctionResultsParser(test_proxy)
+    results = parser.get_all_results()
+    assert results[0].id == 2031520001
+    assert results[0].gebotstermin == datetime(2020, 7, 31)
+    assert results[0].value == 2037.77

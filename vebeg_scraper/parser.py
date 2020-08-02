@@ -1,6 +1,6 @@
 from vebeg_scraper.proxy import RequestProxy
-from typing import List, Optional
-from vebeg_scraper.models import Listing, Category, GEBOTSBASIS_NAMES, Dict
+from typing import List, Optional, Dict
+from vebeg_scraper.models import Listing, Category, GEBOTSBASIS_NAMES, AuctionResult
 from bs4 import element, BeautifulSoup  # type: ignore
 from datetime import datetime
 from vebeg_scraper import settings
@@ -192,6 +192,26 @@ class ListingParser:
                         f"picture was already downlaoded name: {id}_{count}"
                     )
         return picture_paths
+
+
+class AuctionResultsParser:
+    def __init__(self, request_porxy: RequestProxy):
+        self.request_porxy = request_porxy
+        self.url = "/web/de/verkauf/zuschlagspreise.htm"
+        self.logger = logging.getLogger("scraper.AuctionResults")
+
+    def get_all_results(self) -> List[AuctionResult]:
+        result_bs = self.request_porxy.get_bs_from_url(self.url)
+        results: List[AuctionResult] = []
+        for row in result_bs.select("tr.highlighonhover.zuschlag_user"):
+            columns = row.find_all("td")
+            id = int(columns[0].text.replace(".", ""))
+            gebotstermin = datetime.strptime(columns[1].text, "%d.%m.%Y")
+            value = float(
+                columns[3].text.replace("€", "").replace(".", "").replace(",", ".")
+            )
+            results.append(AuctionResult(id, gebotstermin, value))
+        return results
 
 
 def clean_string(string: str) -> str:

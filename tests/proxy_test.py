@@ -14,6 +14,9 @@ class TestProxy:
         self.listing_page_bs = BeautifulSoup(
             test_path.joinpath("listing.html").read_text(), "html.parser"
         )
+        self.resutls_page_bs = BeautifulSoup(
+            test_path.joinpath("results.html").read_text(), "html.parser"
+        )
 
     def get_bs_from_url(self, url: str):
         if url == "/web/de/start/index.htm":
@@ -25,7 +28,10 @@ class TestProxy:
             in url
         ):
             return self.listings_page_bs
+        elif url == "/web/de/verkauf/zuschlagspreise.htm":
+            return self.resutls_page_bs
         elif "test_listing":
+
             return self.listing_page_bs
 
         raise HTTPException
