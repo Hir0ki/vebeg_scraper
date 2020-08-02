@@ -22,6 +22,7 @@ class JsonSerializer:
         for entry in listings:
             entry.category = entry.category.__dict__  # type: ignore
             entry.gebotstermin = str(entry.gebotstermin)  # type: ignore
+            entry.pictures_paths = [str(path) for path in entry.pictures_paths]  # type: ignore
             new_listings.append(entry)
         json_listings = json.dumps([listing.__dict__ for listing in new_listings])
         listings_output_path = self.output_path.joinpath("listings.json")

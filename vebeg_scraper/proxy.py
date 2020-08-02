@@ -23,7 +23,7 @@ class RequestProxy:
 
     def __send_request(self, url: str) -> HTTPResponse:
         request_obj = request.Request(self.base_url + url, headers=self.headers)
-        self.logger.info(f"Sending request to {url}")
+        self.logger.debug(f"Sending request to {url}")
         response: HTTPResponse = request.urlopen(request_obj)
         if response.status == 200:
             return response

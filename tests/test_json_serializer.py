@@ -2,6 +2,7 @@ from vebeg_scraper.models import Listing, Category
 from vebeg_scraper.serializer.json_serializer import JsonSerializer
 from json import loads
 from datetime import datetime
+import pathlib
 import pytest
 import json
 
@@ -21,7 +22,10 @@ def get_test_data():
             gebotsbasis="fdaf",
             lagerort="fdassd",
             attachments=[],
-            pictures_paths=[],
+            pictures_paths=[
+                pathlib.PosixPath("/tmp"),
+                pathlib.PosixPath("/tmp/test.json"),
+            ],
             category=categories[0],
             gebotstermin=datetime(2020, 4, 23, 13, 0),
         ),
@@ -33,7 +37,7 @@ def get_test_data():
             gebotsbasis="fdaf",
             lagerort="fdassd",
             attachments=[],
-            pictures_paths=[],
+            pictures_paths=[pathlib.Path("/tmp")],
             category=categories[1],
             gebotstermin=datetime(2020, 4, 23, 13, 0),
         ),
@@ -64,3 +68,11 @@ def test_listings_serilizer(get_test_data, tmpdir):
     results = json.loads(listings_path.read_text())
     assert results[0].get("id") == 2032160001
     assert results[1].get("id") == 2032170001
+    assert results[0].get("pictures_paths")[0] == "/tmp"
+
+
+# def test_listings_serilizer(get_test_data, tmpdir):
+#    output_path = tmpdir
+#    listings = get_test_data[1]
+#    serializer = JsonSerializer(output_path)
+#    pass

@@ -58,13 +58,7 @@ class ListingsParser:
         self.matgruppe_template = "&SUCH_MATGRUPPE="
         self.such_opsition = "&SUCH_STARTREC="
         self.categories = categories
-        self.download_dir = pathlib.Path(settings.PICTURE_CACHE_PATH)
-        if not self.download_dir.is_dir():
-            self.download_dir.mkdir()
         self.logger = logging.getLogger("scraper.listings")
-        self.gebotsbasis_regex = re.compile(
-            r"Gebotsbasis({}|{})".format(GEBOTSBASIS_NAMES[0], GEBOTSBASIS_NAMES[1])
-        )
 
     def __get_listings_for_category(self, category: Category) -> List[Listing]:
         url_with_matgruppe = self.base_url + self.matgruppe_template + str(category.id)
@@ -82,11 +76,40 @@ class ListingsParser:
             page_count = page_count + 20
 
         listings: List[Listing] = []
+        listing_parser = ListingParser(self.request_proxy)
         for listing_url in listing_urls:
-            listings.append(self._parse_lisitng(listing_url, category))
+            listings.append(listing_parser.get_listing(listing_url, category))
         return listings
 
-    def _parse_lisitng(self, listing_url: str, category: Category) -> Listing:
+    def __parse_listing_for_urls(self, listings_bs: BeautifulSoup) -> List[str]:
+        content = listings_bs.find(id="content")
+        tags = content.select("a.los-detaillink.tracklink")
+        results = []
+        for a_tag in tags:
+            results.append(a_tag.get("href"))
+        return results
+
+    def get_listings(self) -> List[Listing]:
+        listings: List[Listing] = []
+        for category in self.categories:
+            if category.is_top_level is False:
+                listings = listings + self.__get_listings_for_category(category)
+
+        return listings
+
+
+class ListingParser:
+    def __init__(self, request_proxy: RequestProxy):
+        self.request_proxy = request_proxy
+        self.download_dir = pathlib.Path(settings.PICTURE_CACHE_PATH)
+        if not self.download_dir.is_dir():
+            self.download_dir.mkdir()
+        self.logger = logging.getLogger("scraper.listing")
+        self.gebotsbasis_regex = re.compile(
+            r"Gebotsbasis({}|{})".format(GEBOTSBASIS_NAMES[0], GEBOTSBASIS_NAMES[1])
+        )
+
+    def get_listing(self, listing_url: str, category: Category) -> Listing:
         listing_bs = self.request_proxy.get_bs_from_url(listing_url)
         self.logger.info(f"parsing listing url:{listing_url} category:{category.id}")
         content = listing_bs.find(id="content")
@@ -154,14 +177,6 @@ class ListingsParser:
             output_dict[key.text.strip(":")] = entry.text
         return output_dict
 
-    def __parse_listing_for_urls(self, listings_bs: BeautifulSoup) -> List[str]:
-        content = listings_bs.find(id="content")
-        tags = content.select("a.los-detaillink.tracklink")
-        results = []
-        for a_tag in tags:
-            results.append(a_tag.get("href"))
-        return results
-
     def __download_pictures(self, urls: List[str], id: int) -> List[pathlib.Path]:
 
         picture_paths: List[pathlib.Path] = []
@@ -177,14 +192,6 @@ class ListingsParser:
                         f"picture was already downlaoded name: {id}_{count}"
                     )
         return picture_paths
-
-    def get_listings(self) -> List[Listing]:
-        listings: List[Listing] = []
-        for category in self.categories:
-            if category.is_top_level is False:
-                listings = listings + self.__get_listings_for_category(category)
-
-        return listings
 
 
 def clean_string(string: str) -> str:
