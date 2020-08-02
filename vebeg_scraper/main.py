@@ -10,9 +10,8 @@ output = JsonSerializer(settings.JSON_SERIALIZER_OUTPUT_PATH)
 
 cat = CategoryParser(s)
 cats = cat.get_categories()
-output.serializer_categoriy(cats)
+output.serializer_categories(cats)
 
 listing = ListingsParser(s, cats)
 listings = listing.get_listings()
 output.serializer_listings(listings)
-
