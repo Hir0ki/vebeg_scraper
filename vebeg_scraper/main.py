@@ -26,6 +26,7 @@ def run_scraper():
     output.serializer_listings(listings)
 
 
+logging.info("Starting scrping")
 time.sleep(5000)
 run_scraper()
 
