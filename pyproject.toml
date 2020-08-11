@@ -10,6 +10,7 @@ beautifulsoup4 = "^4.9.1"
 pyyaml = "^5.3.1"
 prometheus_client = "^0.8.0"
 schedule = "^0.6.0"
+psycopg2-binary = "^2.8.5"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"

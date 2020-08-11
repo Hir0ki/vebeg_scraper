@@ -3,4 +3,21 @@ services:
   scraper:
     build: .
     ports:
-    - "9111:9111"
+      - "9111:9111"
+    depends_on:
+      - database
+  database:
+    build: ./postgres
+    environment:
+      POSTGRES_PASSWORD: thisisatest 
+      POSTGRES_USER: vebeg
+      POSTGRES_DB: vebeg
+   # volumes:
+  #   - vebeg_postgress:/var/lib/postgresql/data
+  admin:
+    image: dpage/pgadmin4
+    ports:
+      - "80:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: david.scheiklies@protonmail.com
+      PGADMIN_DEFAULT_PASSWORD: test

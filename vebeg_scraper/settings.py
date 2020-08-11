@@ -10,6 +10,11 @@ VEBEG_URL = os.getenv("VEGEB_URL", "https://www.vebeg.de")
 
 PROMEHTEUS_PORT = int(os.getenv("PROMETHEUS_PORT", 9111))
 
+PG_USER = os.getenv("PG_USER", "vebeg")
+PG_PASS = os.getenv("PG_PASS", "thisisatest")
+PG_DB = os.getenv("PG_DB", "vebeg")
+PG_HOST = os.getenv("PG_HOST", "database")
+
 JSON_SERIALIZER_OUTPUT_PATH = os.getenv("JSON_SERIALIZER_OUTPUT_PATH", "/tmp/output")
 
 PICTURE_CACHE_PATH = os.getenv("PICTURE_CACHE_PATH", "/tmp/picture_cache")
