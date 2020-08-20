@@ -2,6 +2,7 @@ import psycopg2
 import time
 import pathlib
 import logging
+import json
 from typing import List
 from typing import List
 from vebeg_scraper import settings
@@ -26,9 +27,11 @@ class Database:
                 time.sleep(1)
                 count + 1
             self.logger.error("couldn't connect to db after 10 seconds")
+        if count > 10:
             raise psycopg2.OperationalError()
 
     def write_categories(self, categories: List[Category]):
+        self.logger.debug(f"write {len(categories)} to database")
         cusor = self.connection.cursor()
         existing_cat_id = [cat.id for cat in self.read_all_cateogires()]
         cats_to_write = [cat for cat in categories if cat.id not in existing_cat_id]
@@ -42,6 +45,7 @@ class Database:
         cusor.close()
 
     def read_all_cateogires(self) -> List[Category]:
+        self.logger.debug(f"reading categories from database")
         cur = self.connection.cursor()
         cur.execute("SELECT id, name, is_top_level, parent_id FROM Categories")
         return [
@@ -51,18 +55,23 @@ class Database:
 
     def write_listing(self, listing: Listing):
         cur = self.connection.cursor()
-        cur.execute(
-            """INSERT INTO Listings ( id, title, data, kurzbeschreibung, gebotsbasis, lagerort, gebotstermin, category_id ) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)""",
-            (
-                listing.id,
-                listing.title,
-                listing.daten,
-                listing.kurzbeschreibung,
-                listing.gebotsbasis,
-                listing.lagerort,
-                listing.gebotstermin,
-                listing.category.id,
-            ),
-        )
-        cur.commit()
+        self.logger.debug(f"Writeing listing: {listing}")
+        try:
+            cur.execute(
+                """INSERT INTO Listings ( id, title, data, kurzbeschreibung, gebotsbasis, lagerort, gebotstermin, category_id ) VALUES(%s,%s,%s,%s,%s,%s,%s,%s)""",
+                (
+                    listing.id,
+                    listing.title,
+                    json.dumps(listing.daten),
+                    listing.kurzbeschreibung,
+                    listing.gebotsbasis,
+                    listing.lagerort,
+                    listing.gebotstermin,
+                    listing.category.id,
+                ),
+            )
+        except psycopg2.Error:
+            self.logger.warning(f"duplicate listing with id: {listing.id}")
+        else:
+            self.connection.commit()
         cur.close()

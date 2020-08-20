@@ -7,11 +7,12 @@ import pathlib
 
 # Add new config parameter her
 VEBEG_URL = os.getenv("VEGEB_URL", "https://www.vebeg.de")
+VEBEG_DOWNLOAD_PICUTRES = bool(os.getenv("VEBEG_DOWNLOAD_PICUTRES", True))
 
 PROMEHTEUS_PORT = int(os.getenv("PROMETHEUS_PORT", 9111))
 
 PG_USER = os.getenv("PG_USER", "vebeg")
-PG_PASS = os.getenv("PG_PASS", "thisisatest")
+PG_PASS = os.getenv("PG_PASS", "vebeg")
 PG_DB = os.getenv("PG_DB", "vebeg")
 PG_HOST = os.getenv("PG_HOST", "database")
 
@@ -34,5 +35,5 @@ if logging_config_path.is_file():
 else:
     logging.error("Couldn't find the logging config", exc_info=True)
     raise ValueError("Error while loading logging config")
-
+logging.error(logging_config)
 dictConfig(logging_config)

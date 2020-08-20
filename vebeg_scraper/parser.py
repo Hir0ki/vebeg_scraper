@@ -1,6 +1,7 @@
 from vebeg_scraper.proxy import RequestProxy
 from typing import List, Optional, Dict
 from vebeg_scraper.models import Listing, Category, GEBOTSBASIS_NAMES, AuctionResult
+from vebeg_scraper.serializer.postgres_serializer.postgress_serializer import Database
 from bs4 import element, BeautifulSoup  # type: ignore
 from datetime import datetime
 from vebeg_scraper import settings
@@ -52,12 +53,14 @@ class CategoryParser:
 
 
 class ListingsParser:
-    def __init__(self, request_proxy: RequestProxy, categories: List[Category]):
+    def __init__(self, request_proxy: RequestProxy, categories: List[Category], database: Database, will_download_pictures:bool ):
         self.request_proxy = request_proxy
         self.base_url = "/web/de/verkauf/suchen.htm?DO_SUCHE=1"
         self.matgruppe_template = "&SUCH_MATGRUPPE="
         self.such_opsition = "&SUCH_STARTREC="
         self.categories = categories
+        self.database = database
+        self.will_download_pictures = will_download_pictures
         self.logger = logging.getLogger("scraper.listings")
 
     def __get_listings_for_category(self, category: Category) -> List[Listing]:
@@ -79,6 +82,8 @@ class ListingsParser:
         listing_parser = ListingParser(self.request_proxy)
         for listing_url in listing_urls:
             listings.append(listing_parser.get_listing(listing_url, category))
+        self.logger.info("Writing data to database")
+        [self.database.write_listing(listing) for listing in listings ] 
         return listings
 
     def __parse_listing_for_urls(self, listings_bs: BeautifulSoup) -> List[str]:

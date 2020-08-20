@@ -29,7 +29,7 @@ def run_scraper():
     resutls = AuctionResultsParser(s).get_all_results()
     output.serializer_auction_results(resutls)
 
-    listing = ListingsParser(s, cats)
+    listing = ListingsParser(s, cats, database, settings.VEBEG_DOWNLOAD_PICUTRES)
     listings = listing.get_listings()
     output.serializer_listings(listings)
 
