@@ -6,7 +6,7 @@ import json
 from typing import List
 from typing import List
 from vebeg_scraper import settings
-from vebeg_scraper.models import Category, Listing
+from vebeg_scraper.models import Category, Listing, AuctionResult
 
 
 class Database:
@@ -45,7 +45,7 @@ class Database:
         cusor.close()
 
     def read_all_cateogires(self) -> List[Category]:
-        self.logger.debug(f"reading categories from database")
+        self.logger.debug("reading categories from database")
         cur = self.connection.cursor()
         cur.execute("SELECT id, name, is_top_level, parent_id FROM Categories")
         return [
@@ -72,6 +72,22 @@ class Database:
             )
         except psycopg2.Error:
             self.logger.warning(f"duplicate listing with id: {listing.id}")
-        else:
-            self.connection.commit()
+
+        self.connection.commit()
+        cur.close()
+
+    def update_listing_with_price(self, result: AuctionResult):
+        cur = self.connection.cursor()
+        self.logger.debug(f"Update listing: {result.id} with price {result.value}")
+        try:
+            cur.execute(
+                "UPDATE Listings SET sold_price = %s WHERE id = %s;",
+                (result.id, result.value),
+            )
+        except psycopg2.Error as err:
+            self.logger.warning(
+                f"Listing {result.id} couldn't update price with error {err.__name__} "
+            )
+            self.connection.rollback()
+        self.connection.commit()
         cur.close()

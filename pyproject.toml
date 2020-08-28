@@ -20,6 +20,7 @@ black = "^19.10b0"
 pre-commit = "^2.6.0"
 flake8 = "^3.8.3"
 rope = "^0.17.0"
+debugpy = "^1.0.0-rc.2"
 
 [tool.black]
 line-length = 88

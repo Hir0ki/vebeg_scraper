@@ -53,7 +53,13 @@ class CategoryParser:
 
 
 class ListingsParser:
-    def __init__(self, request_proxy: RequestProxy, categories: List[Category], database: Database, will_download_pictures:bool ):
+    def __init__(
+        self,
+        request_proxy: RequestProxy,
+        categories: List[Category],
+        database: Database,
+        will_download_pictures: bool,
+    ):
         self.request_proxy = request_proxy
         self.base_url = "/web/de/verkauf/suchen.htm?DO_SUCHE=1"
         self.matgruppe_template = "&SUCH_MATGRUPPE="
@@ -79,11 +85,11 @@ class ListingsParser:
             page_count = page_count + 20
 
         listings: List[Listing] = []
-        listing_parser = ListingParser(self.request_proxy)
+        listing_parser = ListingParser(self.request_proxy, self.will_download_pictures)
         for listing_url in listing_urls:
             listings.append(listing_parser.get_listing(listing_url, category))
         self.logger.info("Writing data to database")
-        [self.database.write_listing(listing) for listing in listings ] 
+        [self.database.write_listing(listing) for listing in listings]
         return listings
 
     def __parse_listing_for_urls(self, listings_bs: BeautifulSoup) -> List[str]:
@@ -104,12 +110,13 @@ class ListingsParser:
 
 
 class ListingParser:
-    def __init__(self, request_proxy: RequestProxy):
+    def __init__(self, request_proxy: RequestProxy, will_download_pictures: bool):
         self.request_proxy = request_proxy
         self.download_dir = pathlib.Path(settings.PICTURE_CACHE_PATH)
         if not self.download_dir.is_dir():
             self.download_dir.mkdir()
         self.logger = logging.getLogger("scraper.listing")
+        self.will_download_pictures = will_download_pictures
         self.gebotsbasis_regex = re.compile(
             r"Gebotsbasis({}|{})".format(GEBOTSBASIS_NAMES[0], GEBOTSBASIS_NAMES[1])
         )
@@ -149,7 +156,7 @@ class ListingParser:
 
         pictures_html_container = content.select("td.detailtable.b_l")
         picture_paths = []
-        if len(pictures_html_container) == 1:
+        if len(pictures_html_container) == 1 and self.will_download_pictures is True:
             picture_paths = self.__download_pictures(
                 [
                     a_tag.get("href")

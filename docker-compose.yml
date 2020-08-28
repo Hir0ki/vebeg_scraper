@@ -2,6 +2,7 @@ version: "3"
 services:
   scraper:
     build: .
+    env_file: ".dev-env"
     ports:
       - "9111:9111"
     depends_on:

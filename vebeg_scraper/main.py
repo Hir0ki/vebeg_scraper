@@ -9,6 +9,12 @@ from vebeg_scraper.serializer.postgres_serializer.postgress_serializer import Da
 from vebeg_scraper.proxy import RequestProxy
 from vebeg_scraper import settings
 
+
+if settings.DEBUG_MODE is True:
+    import debugpy
+
+    debugpy.listen(5678)
+
 s = RequestProxy("https://www.vebeg.de")
 prometheus_client.start_http_server(settings.PROMEHTEUS_PORT)
 output = JsonSerializer(settings.JSON_SERIALIZER_OUTPUT_PATH)
@@ -26,8 +32,9 @@ def run_scraper():
     output.serializer_categories(cats)
     database.write_categories(cats)
 
-    resutls = AuctionResultsParser(s).get_all_results()
-    output.serializer_auction_results(resutls)
+    results = AuctionResultsParser(s).get_all_results()
+    output.serializer_auction_results(results)
+    [database.update_listing_with_price(result) for result in results]
 
     listing = ListingsParser(s, cats, database, settings.VEBEG_DOWNLOAD_PICUTRES)
     listings = listing.get_listings()
@@ -37,7 +44,7 @@ def run_scraper():
 logging.info("Starting scrping")
 time.sleep(10)
 run_scraper()
-
+logging.info("Done scraping")
 schedule.every(2).days.do(run_scraper)
 
 while True:
