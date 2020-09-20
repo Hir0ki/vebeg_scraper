@@ -76,17 +76,17 @@ class Database:
         self.connection.commit()
         cur.close()
 
-    def update_listing_with_price(self, result: AuctionResult):
+    def insert_listing_with_price(self, result: AuctionResult):
         cur = self.connection.cursor()
-        self.logger.debug(f"Update listing: {result.id} with price {result.value}")
+        self.logger.debug(f"Insert  listing: {result.id} with price {result.value}")
         try:
             cur.execute(
-                "UPDATE Listings SET sold_price = %s WHERE id = %s;",
+                "INSERT INTO AuctionResults ( id, price ) VALUES(%s,%s)",
                 (result.id, result.value),
             )
         except psycopg2.Error as err:
             self.logger.warning(
-                f"Listing {result.id} couldn't update price with error {err.__name__} "
+                f"Listing {result.id} couldn't insert price with error {err.__name__} "
             )
             self.connection.rollback()
         self.connection.commit()

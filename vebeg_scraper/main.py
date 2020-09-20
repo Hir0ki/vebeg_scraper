@@ -33,8 +33,7 @@ def run_scraper():
     database.write_categories(cats)
 
     results = AuctionResultsParser(s).get_all_results()
-    output.serializer_auction_results(results)
-    [database.update_listing_with_price(result) for result in results]
+    [database.insert_listing_with_price(result) for result in results]
 
     listing = ListingsParser(s, cats, database, settings.VEBEG_DOWNLOAD_PICUTRES)
     listings = listing.get_listings()

@@ -13,9 +13,13 @@ CREATE TABLE IF NOT EXISTS Listings (
     lagerort TEXT NOT NULL,
     gebotstermin DATE,
     category_id INTEGER NOT NULL,
-    sold_price INTEGER,
     CONSTRAINT fk_category
         FOREIGN KEY(category_id) 
 	    REFERENCES Categories(id)
 );
+CREATE TABLE IF NOT EXISTS AuctionResults (
+    id INTEGER PRIMARY KEY,
+    price INTEGER NOT NULL
+);
+   
 
