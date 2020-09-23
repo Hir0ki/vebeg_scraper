@@ -84,9 +84,9 @@ class Database:
                 "INSERT INTO AuctionResults ( id, price ) VALUES(%s,%s)",
                 (result.id, result.value),
             )
-        except psycopg2.Error as err:
+        except Exception as err:
             self.logger.warning(
-                f"Listing {result.id} couldn't insert price with error {err.__name__} "
+                f"Listing {result.id} couldn't insert price with error {err} "
             )
             self.connection.rollback()
         self.connection.commit()
